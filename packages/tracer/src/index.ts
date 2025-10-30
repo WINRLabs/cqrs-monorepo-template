@@ -1,7 +1,8 @@
 import { NodeSDK } from '@opentelemetry/sdk-node';
-import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { BatchSpanProcessor, ConsoleSpanExporter } from '@opentelemetry/sdk-trace-base';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
+// import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { B3InjectEncoding, B3Propagator } from '@opentelemetry/propagator-b3';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
@@ -23,12 +24,41 @@ export function createOtelSDK({ serviceName, isProd, collectorUrl }: OtelSDKArgs
     url: collectorUrl,
   });
 
-  const spanProcessor = new BatchSpanProcessor(traceExporter);
+  const wrappedExporter = {
+    export: (spans: any, resultCallback: any) => {
+      return traceExporter.export(spans, (result: any) => {
+        if (result.code !== 0) {
+          console.error(`[OpenTelemetry] Export failed:`, result);
+        }
+
+        resultCallback(result);
+      });
+    },
+    shutdown: () => traceExporter.shutdown(),
+  };
+
+  // Batch processor with faster flush settings for local testing
+  const spanProcessor = new BatchSpanProcessor(wrappedExporter as any, {
+    maxQueueSize: 2048,
+    maxExportBatchSize: 512,
+    scheduledDelayMillis: 1000, // Flush every 1 second instead of default 5 seconds
+    exportTimeoutMillis: 30000,
+  });
+
+  /*
+  const consoleExporter = new ConsoleSpanExporter();
+  const consoleProcessor = new BatchSpanProcessor(consoleExporter, {
+    maxQueueSize: 2048,
+    maxExportBatchSize: 512,
+    scheduledDelayMillis: 1000,
+    exportTimeoutMillis: 30000,
+  });
+  */
 
   const sdk = new NodeSDK({
     resource: resourceFromAttributes({ [ATTR_SERVICE_NAME]: serviceName }),
     traceExporter,
-    spanProcessors: [spanProcessor],
+    spanProcessors: [spanProcessor /*, consoleProcessor */],
     instrumentations: [getNodeAutoInstrumentations()],
     contextManager: new AsyncLocalStorageContextManager(),
     textMapPropagator: new CompositePropagator({

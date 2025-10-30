@@ -1,0 +1,37 @@
+# kind: StorageClass
+# apiVersion: storage.k8s.io/v1
+# metadata:
+#   name: rabbitmq-storage
+# provisioner: kubernetes.io/no-provisioner
+# volumeBindingMode: WaitForFirstConsumer
+# reclaimPolicy: Retain
+# allowVolumeExpansion: false
+
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: rabbitmq-cluster
+spec:
+  replicas: 3
+  service:
+    type: LoadBalancer
+  # persistence:
+  #   storageClassName: standard
+  #   storage: 20Gi
+  autoEnableAllFeatureFlags: true
+  rabbitmq:
+    additionalConfig: |
+      default_queue_type = quorum
+    # advancedConfig: |
+    #   [
+    #       {ra, [
+    #           {wal_data_dir, '/var/lib/rabbitmq/quorum-wal'}
+    #       ]}
+    #   ].
+    # envConfig: |
+    #   RABBITMQ_DISTRIBUTION_BUFFER_SIZE=some_value
+    additionalPlugins:
+      - rabbitmq_top
+      - rabbitmq_shovel
+      # - rabbitmq_message_deduplication # doesnt work...

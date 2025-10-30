@@ -1,0 +1,94 @@
+services:
+  otel-collector:
+    container_name: pow_rent_otel_collector_dev
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yml"]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8888:8888"   # Prometheus metrics
+      - "8889:8889"   # Prometheus exporter metrics
+    depends_on:
+      - jaeger
+
+  jaeger:
+    container_name: pow_rent_jaeger_dev
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "14250:14250" # Jaeger gRPC
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+  prometheus:
+    container_name: pow_rent_prometheus_dev
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+
+  postgis:
+    build:
+      context: ./postgis
+      dockerfile: Dockerfile
+    # image: postgres:18-alpine
+    container_name: pow_rent_postgis_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pow_rent_dev
+      POSTGRES_USER: pow_rent_user
+      POSTGRES_PASSWORD: pow_rent_password_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgis_data:/var/lib/postgresql/data
+      - ./db-init-scripts:/docker-entrypoint-initdb.d
+
+  ota:
+    build:
+      context: ../services/ota
+      dockerfile: Dockerfile
+    volumes:
+      - ../services/ota/vendor:/var/www/vendor
+      - ../services/ota/public:/var/www/public
+      - ../services/ota/src:/var/www/src
+    ports:
+      - "8080:8080"
+    environment:
+      - OTEL_SERVICE_NAME=ota
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_PROPAGATORS=baggage,tracecontext
+      - OTEL_PHP_AUTOLOAD_ENABLED=true 
+      - OTEL_TRACES_EXPORTER=otlp
+
+  properties:
+    build:
+      context: ../
+      dockerfile: cmd/server/Dockerfile
+    ports:
+      - "50051:50051"
+    environment:
+      - OTEL_SERVICE_NAME=properties_service
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4318
+      - ENVIRONMENT=production
+
+networks:
+  default:
+    name: otel-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+  postgis_data:
+    driver: local
