@@ -23,7 +23,7 @@ processors:
         value: development
         action: upsert
       - key: service.namespace
-        value: pow.rent
+        value: jb
         action: upsert
 
 exporters:

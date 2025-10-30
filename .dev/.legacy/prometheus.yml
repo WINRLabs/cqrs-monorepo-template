@@ -8,9 +8,3 @@ scrape_configs:
       - targets: ["otel-collector:8889"]
     scrape_interval: 10s
     metrics_path: /metrics
-
-  - job_name: "pow-rent-grpc"
-    static_configs:
-      - targets: ["host.docker.internal:50051"]
-    scrape_interval: 10s
-    metrics_path: /metrics

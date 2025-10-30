@@ -6,10 +6,12 @@ import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { B3InjectEncoding, B3Propagator } from '@opentelemetry/propagator-b3';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { CompositePropagator, W3CTraceContextPropagator, W3CBaggagePropagator } from '@opentelemetry/core';
 import { trace, Tracer } from '@opentelemetry/api';
+
 import { AmqplibInstrumentation } from '@opentelemetry/instrumentation-amqplib';
+import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
+import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 
 export type { Span } from '@opentelemetry/api';
 export { trace, context, propagation } from '@opentelemetry/api';
@@ -60,7 +62,11 @@ export function createOtelSDK({ serviceName, isProd, collectorUrl }: OtelSDKArgs
     resource: resourceFromAttributes({ [ATTR_SERVICE_NAME]: serviceName }),
     traceExporter,
     spanProcessors: [spanProcessor /*, consoleProcessor */],
-    instrumentations: [getNodeAutoInstrumentations(), new AmqplibInstrumentation()],
+    instrumentations: [
+      new HttpInstrumentation({}),
+      new ExpressInstrumentation({ ignoreLayers: ['/health', '/metrics'] }),
+      new AmqplibInstrumentation(),
+    ],
     contextManager: new AsyncLocalStorageContextManager(),
     textMapPropagator: new CompositePropagator({
       propagators: [

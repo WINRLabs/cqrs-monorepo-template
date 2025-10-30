@@ -50,9 +50,8 @@ async function main() {
         const message = "Hello World";
         span.setAttribute("message", message);
 
-        const spanContext = span.spanContext();
-
         // Inject trace context into message headers
+        // TODO: try with hooks
         const headers: Record<string, string> = {};
         propagation.inject(context.active(), headers, {
           set: (
