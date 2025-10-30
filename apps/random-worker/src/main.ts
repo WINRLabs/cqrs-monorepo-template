@@ -1,10 +1,12 @@
 import { createProgramLoggerTelemetryConfig } from "@justbet/logger";
-import { createOtelSDK } from "@justbet/tracer";
+import { createOtelSDK, propagation, context } from "@justbet/tracer";
 import amqp, { type ConsumeMessage } from "amqplib";
 
 const serviceName = process.env.SERVICE_NAME || "justbet-random-worker";
 
-const AMQP_URL = process.env.AMQP_URL || "amqp://localhost";
+const AMQP_URL =
+  process.env.AMQP_URL ||
+  "amqp://default_user_jv9GUd8KvfaqOisBq5z:AFDTEkFFd17Aav9D6simibY9a9_Fzuwo@localhost:5672";
 
 const getTracer = createOtelSDK({
   serviceName,
@@ -51,37 +53,51 @@ async function main() {
 
   await channel.consume(queue.queue, (msg: ConsumeMessage | null) => {
     const tracer = getTracer();
-    tracer.startActiveSpan(
-      "consumeMessageFromRandomNumberQueue",
-      async (span) => {
-        if (msg === null) {
-          logger.warn("No message received from queue");
-          span.setStatus({
-            code: 2,
-            message: "No message received from queue",
-          });
 
-          span.end();
+    if (msg === null) {
+      logger.warn("No message received from queue");
+      return;
+    }
 
-          return;
+    // Extract trace context from message headers
+    const headers = msg.properties.headers || {};
+
+    const parentContext = propagation.extract(context.active(), headers, {
+      get: (carrier: Record<string, any>, key: string) => {
+        return carrier[key] as string | undefined;
+      },
+      keys: (carrier: Record<string, any>) => Object.keys(carrier),
+    });
+
+    // Start span with parent context using context.with
+    context.with(parentContext, () => {
+      tracer.startActiveSpan(
+        "consumeMessageFromRandomNumberQueue",
+        {
+          kind: 1, // SERVER
+        },
+        async (span) => {
+          try {
+            span.setAttribute("message", msg.content.toString());
+            const result = await getRandomNumber(1, 6);
+            span.setAttribute("result", result);
+            logger.info(
+              { message: msg.content.toString(), result },
+              "Generated random number"
+            );
+            channel.ack(msg, false);
+          } catch (err) {
+            logger.error(err, "Error consuming message from queue");
+            span.setStatus({
+              code: 2,
+              message: err instanceof Error ? err.message : "Unknown error",
+            });
+          } finally {
+            span.end();
+          }
         }
-
-        try {
-          span.setAttribute("message", msg.content.toString());
-          const result = await getRandomNumber(1, 6);
-          span.setAttribute("result", result);
-          logger.info(
-            { message: msg.content.toString(), result },
-            "Generated random number"
-          );
-          channel.ack(msg, false);
-        } catch (err) {
-          logger.error(err, "Error consuming message from queue");
-        } finally {
-          span.end();
-        }
-      }
-    );
+      );
+    });
   });
 }
 

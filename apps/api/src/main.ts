@@ -1,11 +1,14 @@
 import express from "express";
 import type { Request, Response, Express } from "express";
 import { createProgramLoggerTelemetryConfig } from "@justbet/logger";
-import { createOtelSDK } from "@justbet/tracer";
+import { context, createOtelSDK, propagation } from "@justbet/tracer";
 import amqplib from "amqplib";
 
 const PORT: number = parseInt(process.env.PORT || "8080");
-const AMQP_URL = process.env.AMQP_URL || "amqp://localhost";
+
+const AMQP_URL =
+  process.env.AMQP_URL ||
+  "amqp://default_user_jv9GUd8KvfaqOisBq5z:AFDTEkFFd17Aav9D6simibY9a9_Fzuwo@localhost:5672";
 
 const serviceName = process.env.SERVICE_NAME || "justbet-api";
 
@@ -46,7 +49,25 @@ async function main() {
       try {
         const message = "Hello World";
         span.setAttribute("message", message);
-        await channel.sendToQueue(queue.queue, Buffer.from(message));
+
+        const spanContext = span.spanContext();
+
+        // Inject trace context into message headers
+        const headers: Record<string, string> = {};
+        propagation.inject(context.active(), headers, {
+          set: (
+            carrier: Record<string, string>,
+            key: string,
+            value: string
+          ) => {
+            carrier[key] = value;
+          },
+        });
+
+        channel.sendToQueue(queue.queue, Buffer.from(message), {
+          headers,
+        });
+
         logger.info({ message }, "Message sent to queue");
         res.json({ message: "Message sent to queue", sentMessage: message });
       } catch (err) {

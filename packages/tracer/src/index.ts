@@ -12,7 +12,7 @@ import { trace, Tracer } from '@opentelemetry/api';
 import { AmqplibInstrumentation } from '@opentelemetry/instrumentation-amqplib';
 
 export type { Span } from '@opentelemetry/api';
-export { context, trace } from '@opentelemetry/api';
+export { trace, context, propagation } from '@opentelemetry/api';
 
 interface OtelSDKArgs {
   serviceName: string;
