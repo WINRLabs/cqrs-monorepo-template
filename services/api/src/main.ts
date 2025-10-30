@@ -1,17 +1,17 @@
 import express from "express";
 import type { Request, Response, Express } from "express";
-import { createProgramLogger } from "@justbet/logger";
+import { createProgramLoggerTelemetryConfig } from "@justbet/logger";
 import { createOtelSDK } from "@justbet/tracer";
 
 const serviceName = process.env.SERVICE_NAME || "justbet-api";
 
-const tracer = createOtelSDK({
-  serviceName: serviceName,
+const getTracer = createOtelSDK({
+  serviceName,
   isProd: process.env.NODE_ENV === "production",
   collectorUrl: process.env.OTEL_COLLECTOR_URL || "http://localhost:4318",
 });
 
-const logger = createProgramLogger({
+const logger = createProgramLoggerTelemetryConfig({
   level: process.env.LOG_LEVEL || "info",
   name: serviceName,
 });
@@ -27,13 +27,20 @@ function getRandomNumber(min: number, max: number) {
 }
 
 app.get("/", (req: Request, res: Response) => {
-  logger.info("Rolling dice");
+  const tracer = getTracer();
+  tracer.startActiveSpan("GET /", (span) => {
+    try {
+      const result = getRandomNumber(1, 6);
 
-  const result = getRandomNumber(1, 6);
+      span.setAttribute("dice.result", result);
 
-  logger.info({ randomNumber: result }, `Rolled a ${result}`);
+      logger.info({ randomNumber: result }, `Rolled a ${result}`);
 
-  res.json({ result });
+      res.json({ result });
+    } finally {
+      span.end();
+    }
+  });
 });
 
 app.listen(PORT, () => {

@@ -42,13 +42,14 @@ export const createProgramLoggerTelemetryConfig = (opts: ProgramLoggerParams) =>
         ignore: 'time,hostname,req,res,pid',
       },
     },
-    formatters: {
-      log: (obj) => {
-        const span = trace.getActiveSpan();
-        if (!span) return obj;
-        const { spanId, traceId } = span.spanContext();
-        return { ...obj, spanId, traceId };
-      },
+    mixin: () => {
+      const span = trace.getActiveSpan();
+      if (!span) return {};
+      const spanContext = span.spanContext();
+      return {
+        traceId: spanContext.traceId,
+        spanId: spanContext.spanId,
+      };
     },
   };
 
