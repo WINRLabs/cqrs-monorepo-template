@@ -1,8 +1,0 @@
-{
-  "yaml.schemas": {
-    "https://www.schemastore.org/yamllint.json": [
-      "file:///Users/buroz/w/winr/rise-infra/cluster/cluster.yaml",
-      "file:///Users/buroz/w/winr/rise-infra/together/cluster/cluster.yaml"
-    ]
-  }
-}
