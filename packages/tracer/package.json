@@ -1,0 +1,33 @@
+{
+  "name": "@justbet/tracer",
+  "version": "0.0.1",
+  "description": "",
+  "main": "./dist/index.js",
+  "typings": "dist/index.d.ts",
+  "exports": {
+    "require": "./dist/index.js",
+    "import": "./dist/index.mjs"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "dev": "tsup-node --watch",
+    "build": "tsup-node src/index.ts --format esm,cjs --experimental-dts"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.66.0",
+    "@opentelemetry/sdk-metrics": "^2.2.0",
+    "@opentelemetry/sdk-node": "^0.207.0",
+    "@opentelemetry/sdk-trace-node": "^2.2.0"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.53.3",
+    "@swc/core": "^1.14.0",
+    "@types/node": "^24.9.2",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  }
+}
