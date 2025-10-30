@@ -9,6 +9,7 @@ import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-ho
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { CompositePropagator, W3CTraceContextPropagator, W3CBaggagePropagator } from '@opentelemetry/core';
 import { trace, Tracer } from '@opentelemetry/api';
+import { AmqplibInstrumentation } from '@opentelemetry/instrumentation-amqplib';
 
 export type { Span } from '@opentelemetry/api';
 export { context, trace } from '@opentelemetry/api';
@@ -59,7 +60,7 @@ export function createOtelSDK({ serviceName, isProd, collectorUrl }: OtelSDKArgs
     resource: resourceFromAttributes({ [ATTR_SERVICE_NAME]: serviceName }),
     traceExporter,
     spanProcessors: [spanProcessor /*, consoleProcessor */],
-    instrumentations: [getNodeAutoInstrumentations()],
+    instrumentations: [getNodeAutoInstrumentations(), new AmqplibInstrumentation()],
     contextManager: new AsyncLocalStorageContextManager(),
     textMapPropagator: new CompositePropagator({
       propagators: [

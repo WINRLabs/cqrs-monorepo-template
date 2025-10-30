@@ -32,6 +32,8 @@ spec:
               value: "http://otelcol-collector-headless:4318/v1/traces"
             - name: PORT
               value: "3000"
+            - name: AMQP_URL
+              value: "amqp://default_user_jv9GUd8KvfaqOisBq5z:AFDTEkFFd17Aav9D6simibY9a9_Fzuwo@rabbitmq-cluster.default.svc:5672"
           resources:
             requests:
               memory: "32Mi"

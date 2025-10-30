@@ -122,6 +122,9 @@ importers:
       '@opentelemetry/exporter-trace-otlp-http':
         specifier: ^0.207.0
         version: 0.207.0(@opentelemetry/api@1.9.0)
+      '@opentelemetry/instrumentation-amqplib':
+        specifier: ^0.54.0
+        version: 0.54.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/propagator-b3':
         specifier: ^2.2.0
         version: 2.2.0(@opentelemetry/api@1.9.0)

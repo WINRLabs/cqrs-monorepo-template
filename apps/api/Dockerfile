@@ -47,4 +47,4 @@ ENV PORT=3000
 
 EXPOSE 3000
 
-CMD [ "node", "services/api/dist/main.cjs" ]
+CMD [ "node", "apps/api/dist/main.cjs" ]

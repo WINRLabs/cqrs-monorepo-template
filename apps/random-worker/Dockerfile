@@ -47,4 +47,4 @@ ENV PORT=3000
 
 EXPOSE 3000
 
-CMD [ "node", "services/random-worker/dist/main.cjs" ]
+CMD [ "node", "apps/random-worker/dist/main.cjs" ]

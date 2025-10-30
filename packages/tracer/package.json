@@ -23,6 +23,7 @@
     "@opentelemetry/core": "^2.2.0",
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.207.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.207.0",
+    "@opentelemetry/instrumentation-amqplib": "^0.54.0",
     "@opentelemetry/propagator-b3": "^2.2.0",
     "@opentelemetry/resources": "^2.2.0",
     "@opentelemetry/sdk-metrics": "^2.2.0",

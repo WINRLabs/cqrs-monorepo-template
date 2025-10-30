@@ -31,7 +31,7 @@ spec:
             - name: OTEL_COLLECTOR_URL
               value: "http://otelcol-collector-headless:4318/v1/traces"
             - name: AMQP_URL
-              value: "amqp://localhost"
+              value: "amqp://default_user_jv9GUd8KvfaqOisBq5z:AFDTEkFFd17Aav9D6simibY9a9_Fzuwo@rabbitmq-cluster.default.svc:5672"
           resources:
             requests:
               memory: "32Mi"
@@ -39,18 +39,6 @@ spec:
             limits:
               memory: "128Mi"
               cpu: "200m"
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 3000
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 3000
-            initialDelaySeconds: 3
-            periodSeconds: 5
 ---
 apiVersion: v1
 kind: Service
