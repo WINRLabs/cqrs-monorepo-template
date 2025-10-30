@@ -1,5 +1,5 @@
 {
-  "name": "@justbet/api",
+  "name": "@justbet/random-worker",
   "version": "1.0.0",
   "type": "module",
   "description": "",
@@ -16,8 +16,7 @@
   "dependencies": {
     "@justbet/logger": "workspace:*",
     "@justbet/tracer": "workspace:*",
-    "amqplib": "^0.10.9",
-    "express": "^5.1.0"
+    "amqplib": "^0.10.9"
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.8",

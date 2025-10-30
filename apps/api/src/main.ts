@@ -2,6 +2,10 @@ import express from "express";
 import type { Request, Response, Express } from "express";
 import { createProgramLoggerTelemetryConfig } from "@justbet/logger";
 import { createOtelSDK } from "@justbet/tracer";
+import amqplib from "amqplib";
+
+const PORT: number = parseInt(process.env.PORT || "8080");
+const AMQP_URL = process.env.AMQP_URL || "amqp://localhost";
 
 const serviceName = process.env.SERVICE_NAME || "justbet-api";
 
@@ -17,37 +21,56 @@ const logger = createProgramLoggerTelemetryConfig({
   name: serviceName,
 });
 
-const PORT: number = parseInt(process.env.PORT || "8080");
+async function main() {
+  const connection = await amqplib.connect(AMQP_URL);
 
-const app: Express = express();
+  const channel = await connection.createChannel();
 
-app.use(express.json());
+  const queue = await channel.assertQueue("random-number", {
+    durable: true,
+    exclusive: false,
+    autoDelete: false,
+    arguments: {
+      "x-queue-type": "quorum",
+    },
+  });
 
-function getRandomNumber(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
+  const app: Express = express();
+
+  app.use(express.json());
+
+  app.get("/", async (req: Request, res: Response) => {
+    const tracer = getTracer();
+
+    tracer.startActiveSpan("sendMessageToRandomNumberQueue", async (span) => {
+      try {
+        const message = "Hello World";
+        span.setAttribute("message", message);
+        await channel.sendToQueue(queue.queue, Buffer.from(message));
+        logger.info({ message }, "Message sent to queue");
+        res.json({ message: "Message sent to queue", sentMessage: message });
+      } catch (err) {
+        logger.error(err, "Error sending message to queue");
+        res.status(500).json({
+          message: "Error sending message to queue",
+          error: err instanceof Error ? err.message : "Unknown error",
+        });
+      } finally {
+        span.end();
+      }
+    });
+  });
+
+  app.get("/health", (req: Request, res: Response) => {
+    res.json({ status: "ok" });
+  });
+
+  app.listen(PORT, () => {
+    logger.info(`Listening for requests on http://localhost:${PORT}`);
+  });
 }
 
-app.get("/", (req: Request, res: Response) => {
-  const tracer = getTracer();
-  tracer.startActiveSpan("GET /", (span) => {
-    try {
-      const result = getRandomNumber(1, 6);
-
-      span.setAttribute("dice.result", result);
-
-      logger.info({ randomNumber: result }, `Rolled a ${result}`);
-
-      res.json({ result });
-    } finally {
-      span.end();
-    }
-  });
-});
-
-app.get("/health", (req: Request, res: Response) => {
-  res.json({ status: "ok" });
-});
-
-app.listen(PORT, () => {
-  logger.info(`Listening for requests on http://localhost:${PORT}`);
+main().catch((err) => {
+  logger.error(err, "Error starting the application");
+  process.exit(1);
 });
