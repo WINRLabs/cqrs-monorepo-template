@@ -22,7 +22,7 @@ interface OtelSDKArgs {
   collectorUrl: string;
 }
 
-const ignoringPaths = ['/health', '/metrics'];
+const ignoringPaths = ['/health', '/metrics', '/favicon.ico'];
 
 export function createOtelSDK({ serviceName, isProd, collectorUrl }: OtelSDKArgs): () => Tracer {
   const traceExporter = new OTLPTraceExporter({
