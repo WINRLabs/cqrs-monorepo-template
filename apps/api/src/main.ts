@@ -1,5 +1,6 @@
-import "./tracer.js";
-import { tracer } from "./tracer.js";
+import "./tracer";
+import { tracer } from "./tracer";
+
 import { context, propagation, type Span } from "@justbet/tracer";
 import express from "express";
 import type { Request, Response, Express } from "express";

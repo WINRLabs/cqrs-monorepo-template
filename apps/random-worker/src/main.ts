@@ -1,5 +1,8 @@
+import "./tracer";
+import { tracer } from "./tracer";
+import { propagation, context, type Span } from "@justbet/tracer";
+
 import { createProgramLoggerTelemetryConfig } from "@justbet/logger";
-import { createOtelSDK, propagation, context } from "@justbet/tracer";
 import amqp, { type ConsumeMessage } from "amqplib";
 
 const serviceName = process.env.SERVICE_NAME || "justbet-random-worker";
@@ -8,22 +11,14 @@ const AMQP_URL =
   process.env.AMQP_URL ||
   "amqp://default_user_jv9GUd8KvfaqOisBq5z:AFDTEkFFd17Aav9D6simibY9a9_Fzuwo@localhost:5672";
 
-const getTracer = createOtelSDK({
-  serviceName,
-  isProd: process.env.NODE_ENV === "production",
-  collectorUrl:
-    process.env.OTEL_COLLECTOR_URL || "http://localhost:4318/v1/traces",
-});
-
 const logger = createProgramLoggerTelemetryConfig({
   level: process.env.LOG_LEVEL || "info",
   name: serviceName,
 });
 
 function getRandomNumber(min: number, max: number): Promise<number> {
-  const tracer = getTracer();
   return new Promise((resolve, reject) => {
-    tracer.startActiveSpan("getRandomNumber", (span) => {
+    tracer.startActiveSpan("getRandomNumber", (span: Span) => {
       try {
         const result = Math.floor(Math.random() * (max - min + 1) + min);
         span.setAttribute("randomNumber", result);
@@ -52,8 +47,6 @@ async function main() {
   });
 
   await channel.consume(queue.queue, (msg: ConsumeMessage | null) => {
-    const tracer = getTracer();
-
     if (msg === null) {
       logger.warn("No message received from queue");
       return;
@@ -76,7 +69,7 @@ async function main() {
         {
           kind: 1, // SERVER
         },
-        async (span) => {
+        async (span: Span) => {
           try {
             span.setAttribute("message", msg.content.toString());
             const result = await getRandomNumber(1, 6);

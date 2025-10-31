@@ -6,9 +6,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "NODE_ENV=development tsup-node --watch --onSuccess 'node dist/main.cjs'",
-    "start": "NODE_ENV=production node --experimental-specifier-resolution=node dist/main.cjs",
-    "build": "tsup-node src/main.ts --format cjs"
+    "dev": "NODE_ENV=development tsx src/main.ts",
+    "start": "NODE_ENV=production node dist/main.js",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
@@ -20,19 +20,8 @@
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.8",
-    "@types/express": "^5.0.5",
     "@types/node": "^24.9.2",
-    "tsup": "^8.5.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
-  },
-  "tsup": {
-    "entry": [
-      "src/main.ts"
-    ],
-    "splitting": true,
-    "sourcemap": true,
-    "treeshake": true,
-    "clean": true,
-    "platform": "node"
   }
 }
