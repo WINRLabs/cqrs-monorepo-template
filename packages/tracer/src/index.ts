@@ -22,6 +22,8 @@ interface OtelSDKArgs {
   collectorUrl: string;
 }
 
+const ignoringPaths = ['/health', '/metrics'];
+
 export function createOtelSDK({ serviceName, isProd, collectorUrl }: OtelSDKArgs): () => Tracer {
   const traceExporter = new OTLPTraceExporter({
     url: collectorUrl,
@@ -63,9 +65,11 @@ export function createOtelSDK({ serviceName, isProd, collectorUrl }: OtelSDKArgs
     traceExporter,
     spanProcessors: [spanProcessor /*, consoleProcessor */],
     instrumentations: [
-      new HttpInstrumentation({}),
-      new ExpressInstrumentation({ ignoreLayers: ['/health', '/metrics'] }),
-      new AmqplibInstrumentation(),
+      new HttpInstrumentation({
+        ignoreIncomingRequestHook: (req) => ignoringPaths.some((path) => req?.url?.includes(path)) ?? false,
+      }),
+      new ExpressInstrumentation({ enabled: true, ignoreLayers: ignoringPaths }),
+      new AmqplibInstrumentation({ enabled: true }),
     ],
     contextManager: new AsyncLocalStorageContextManager(),
     textMapPropagator: new CompositePropagator({

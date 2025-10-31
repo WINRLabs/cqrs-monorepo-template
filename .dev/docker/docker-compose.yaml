@@ -36,6 +36,15 @@ services:
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--web.enable-lifecycle'
 
+  rabbitmq:
+    container_name: pow_rent_rabbitmq_dev
+    image: rabbitmq:latest
+    ports:
+      - "5672:5672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=default_user_jv9GUd8KvfaqOisBq5z
+      - RABBITMQ_DEFAULT_PASS=AFDTEkFFd17Aav9D6simibY9a9_Fzuwo
+
 networks:
   default:
     name: otel-network
