@@ -1,0 +1,24 @@
+exchanges:
+  - name: EVENTS
+    type: direct # direct, topic, fanout, headers
+    durable: true
+    autoDelete: false
+    internal: false
+    noWait: false
+
+routing_keys:
+  - name: GAME
+
+queues:
+  - name: SETTLED
+    durable: true
+    autoDelete: false
+    exclusive: false
+    noWait: false
+    arguments:
+      x-queue-type: quorum
+
+bindings:
+  - exchange: EVENTS
+    routing_key: GAME
+    queue_name: SETTLED
