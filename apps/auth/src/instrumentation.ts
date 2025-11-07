@@ -1,7 +1,6 @@
 import { createOtelSDK, Span, SpanStatusCode, type Tracer } from "@jb/tracer";
 import type { Context, TypedResponse } from "hono";
 import { HandlerResponse } from "hono/types";
-import { StatusCode } from "hono/utils/http-status";
 import { JSONValue } from "hono/utils/types";
 
 export const instrumentationConfig = {

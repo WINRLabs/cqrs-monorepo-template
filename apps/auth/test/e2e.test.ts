@@ -1,5 +1,5 @@
 import { testClient } from "hono/testing";
-import { describe, it, expect } from "vitest"; // Or your preferred test runner
+import { describe, it, expect } from "vitest";
 
 import app from "../src/index";
 import { JWK, KeyPair } from "../src/jwk";
