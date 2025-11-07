@@ -1,0 +1,34 @@
+{
+  "name": "app",
+  "version": "1.0.50",
+  "scripts": {
+    "test": "bun test",
+    "dev": "bun run --watch src/index.ts",
+    "db:start": "docker compose up",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@elysiajs/eden": "^1.4.4",
+    "@elysiajs/openapi": "^1.4.11",
+    "@elysiajs/opentelemetry": "^1.4.6",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.207.0",
+    "@opentelemetry/instrumentation-amqplib": "^0.54.0",
+    "@opentelemetry/instrumentation-http": "^0.207.0",
+    "@opentelemetry/sdk-trace-node": "^2.2.0",
+    "elysia": "latest",
+    "jose": "^6.1.0",
+    "rise-wallet": "^0.2.29"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
+    "siwe": "^3.0.0",
+    "viem": "^2.38.6"
+  },
+  "module": "src/index.js",
+  "engines": {
+    "bun": "1.2.2"
+  }
+}

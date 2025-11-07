@@ -1,10 +1,10 @@
 import "./tracer";
 import { tracer } from "./tracer";
 
-import { context, propagation, type Span } from "@justbet/tracer";
+import { context, propagation, type Span } from "@jb/tracer";
 import express from "express";
 import type { Request, Response, Express } from "express";
-import { createProgramLoggerTelemetryConfig } from "@justbet/logger";
+import { createProgramLoggerTelemetryConfig } from "@jb/logger";
 import amqplib from "amqplib";
 
 const PORT: number = parseInt(process.env.PORT || "8080");
@@ -15,7 +15,7 @@ const AMQP_URL =
 
 const logger = createProgramLoggerTelemetryConfig({
   level: process.env.LOG_LEVEL || "info",
-  name: process.env.SERVICE_NAME || "justbet-api",
+  name: process.env.SERVICE_NAME || "jb-api",
 });
 
 async function main() {

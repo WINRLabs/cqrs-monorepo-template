@@ -1,11 +1,11 @@
 import "./tracer";
 import { tracer } from "./tracer";
-import { propagation, context, type Span } from "@justbet/tracer";
+import { propagation, context, type Span } from "@jb/tracer";
 
-import { createProgramLoggerTelemetryConfig } from "@justbet/logger";
+import { createProgramLoggerTelemetryConfig } from "@jb/logger";
 import amqp, { type ConsumeMessage } from "amqplib";
 
-const serviceName = process.env.SERVICE_NAME || "justbet-random-worker";
+const serviceName = process.env.SERVICE_NAME || "jb-random-worker";
 
 const AMQP_URL =
   process.env.AMQP_URL ||

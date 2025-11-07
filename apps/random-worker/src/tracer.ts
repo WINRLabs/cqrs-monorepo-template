@@ -1,7 +1,7 @@
-import { createOtelSDK, type Tracer } from "@justbet/tracer";
+import { createOtelSDK, type Tracer } from "@jb/tracer";
 
 const getTracer = createOtelSDK({
-  serviceName: process.env.SERVICE_NAME || "justbet-random-worker",
+  serviceName: process.env.SERVICE_NAME || "jb-random-worker",
   isProd: process.env.NODE_ENV === "production",
   collectorUrl:
     process.env.OTEL_COLLECTOR_URL || "http://localhost:4318/v1/traces",

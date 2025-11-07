@@ -1,0 +1,19 @@
+{
+  "name": "@jb/auth",
+  "scripts": {
+    "build": "tsc",
+    "dev": "NODE_ENV=development tsx watch src/index.ts",
+    "start": "NODE_ENV=production node dist/index.js"
+  },
+  "dependencies": {
+    "@jb/logger": "workspace:*",
+    "@jb/tracer": "workspace:*",
+    "@hono/node-server": "^1.19.6",
+    "hono": "^4.10.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3"
+  }
+}

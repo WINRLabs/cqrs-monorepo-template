@@ -5,7 +5,7 @@ This package is used to create a tracer for the application. It is used to trace
 ## Usage
 
 ```ts
-import { createOtelSDK } from '@justbet/tracer';
+import { createOtelSDK } from '@jb/tracer';
 
 const sdk = createOtelSDK('winr-queuemaker', process.env.NODE_ENV === 'production');
 

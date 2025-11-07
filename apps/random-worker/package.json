@@ -1,5 +1,5 @@
 {
-  "name": "@justbet/random-worker",
+  "name": "@jb/random-worker",
   "version": "1.0.0",
   "type": "module",
   "description": "",
@@ -14,8 +14,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@justbet/logger": "workspace:*",
-    "@justbet/tracer": "workspace:*",
+    "@jb/logger": "workspace:*",
+    "@jb/tracer": "workspace:*",
     "amqplib": "^0.10.9"
   },
   "devDependencies": {

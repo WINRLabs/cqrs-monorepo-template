@@ -1,0 +1,6 @@
+telemetry = false
+
+preload = ["./src/instrumentation.ts"]
+
+[test]
+root = "./__test__"

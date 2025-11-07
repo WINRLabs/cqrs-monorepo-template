@@ -1,6 +1,57 @@
 services:
+  auth:
+    container_name: jb_auth_dev
+    build:
+      context: ../../
+      dockerfile: apps/auth/Dockerfile
+      args:
+        - NODE_VERSION=22
+    image: jb-auth:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - OTEL_COLLECTOR_URL=http://otel-collector:4318/v1/traces
+      - LOG_LEVEL=info
+      - SERVICE_NAME=jb-auth
+      - NODE_ENV=production
+      - PORT=8080
+    depends_on:
+      - otel-collector
+      - tempo
+      - loki
+      - prometheus
+      - rabbitmq
+      - grafana
+      - promtail
+
+  api:
+    container_name: jb_api_dev
+    build:
+      context: ../../
+      dockerfile: apps/api/Dockerfile
+      args:
+        - NODE_VERSION=22
+    image: jb-api:latest
+    ports:
+      - "3001:3001"
+    environment:
+      - AMQP_URL=amqp://default_user_jv9GUd8KvfaqOisBq5z:AFDTEkFFd17Aav9D6simibY9a9_Fzuwo@rabbitmq:5672
+      - OTEL_COLLECTOR_URL=http://otel-collector:4318/v1/traces
+      - LOG_LEVEL=info
+      - SERVICE_NAME=jb-api
+      - NODE_ENV=production
+      - PORT=3001
+    depends_on:
+      - otel-collector
+      - tempo
+      - loki
+      - prometheus
+      - rabbitmq
+      - grafana
+      - promtail
+
   otel-collector:
-    container_name: pow_rent_otel_collector_dev
+    container_name: otel_collector_dev
     image: otel/opentelemetry-collector-contrib:latest
     command: ["--config=/etc/otel-collector-config.yml"]
     volumes:
@@ -11,19 +62,62 @@ services:
       - "8888:8888"   # Prometheus metrics
       - "8889:8889"   # Prometheus exporter metrics
     depends_on:
-      - jaeger
+      - tempo
+      - loki
 
-  jaeger:
-    container_name: pow_rent_jaeger_dev
-    image: jaegertracing/all-in-one:latest
+  tempo:
+    container_name: tempo_dev
+    image: grafana/tempo:latest
+    command: ["-config.file=/etc/tempo.yaml"]
+    user: root
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+      - tempo-data:/tmp/tempo
     ports:
-      - "16686:16686" # Jaeger UI
-      - "14250:14250" # Jaeger gRPC
+      - "3200:3200"   # Tempo HTTP
+      - "4317"        # OTLP gRPC receiver (internal)
+
+  loki:
+    container_name: loki_dev
+    image: grafana/loki:latest
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    user: root
+    volumes:
+      - ./loki.yaml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    ports:
+      - "3100:3100"   # Loki HTTP
+
+  promtail:
+    container_name: promtail_dev
+    image: grafana/promtail:latest
+    command: ["-config.file=/etc/promtail/config.yml"]
+    volumes:
+      - ./promtail.yaml:/etc/promtail/config.yml
+      - /var/log:/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - promtail-data:/tmp/promtail
+    depends_on:
+      - loki
+
+  grafana:
+    container_name: grafana_dev
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"   # Grafana UI
+    volumes:
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
     environment:
-      - COLLECTOR_OTLP_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    depends_on:
+      - tempo
+      - prometheus
+      - loki
     
   prometheus:
-    container_name: pow_rent_prometheus_dev
+    container_name: prometheus_dev
     image: prom/prometheus:latest
     ports:
       - "9090:9090"
@@ -37,13 +131,18 @@ services:
       - '--web.enable-lifecycle'
 
   rabbitmq:
-    container_name: pow_rent_rabbitmq_dev
+    container_name: rabbitmq_dev
     image: rabbitmq:latest
     ports:
       - "5672:5672"
     environment:
       - RABBITMQ_DEFAULT_USER=default_user_jv9GUd8KvfaqOisBq5z
       - RABBITMQ_DEFAULT_PASS=AFDTEkFFd17Aav9D6simibY9a9_Fzuwo
+
+volumes:
+  tempo-data:
+  loki-data:
+  promtail-data:
 
 networks:
   default:

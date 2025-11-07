@@ -15,7 +15,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN turbo prune --scope=@justbet/api --docker
+RUN turbo prune --scope=@jb/api --docker
 
 # Add lockfile and package.json's of isolated subworkspace
 FROM base AS installer
@@ -34,7 +34,7 @@ COPY --from=builder /app/out/full/ .
 COPY turbo.json turbo.json
 
 RUN pnpm install
-RUN pnpm turbo run build --filter=@justbet/api...
+RUN pnpm turbo run build --filter=@jb/api...
 
 # RUN
 FROM base AS runner
@@ -47,4 +47,4 @@ ENV PORT=3000
 
 EXPOSE 3000
 
-CMD [ "node", "apps/api/dist/main.cjs" ]
+CMD [ "node", "apps/api/dist/main.js" ]

@@ -15,7 +15,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN turbo prune --scope=@jb/random-worker --docker
+RUN turbo prune --scope=@jb/auth --docker
 
 # Add lockfile and package.json's of isolated subworkspace
 FROM base AS installer
@@ -34,7 +34,7 @@ COPY --from=builder /app/out/full/ .
 COPY turbo.json turbo.json
 
 RUN pnpm install
-RUN pnpm turbo run build --filter=@jb/random-worker...
+RUN pnpm turbo run build --filter=@jb/auth...
 
 # RUN
 FROM base AS runner
@@ -43,8 +43,8 @@ WORKDIR /app
 
 COPY --from=installer /app .
 
-ENV PORT=3000
+ENV PORT=8080
 
-EXPOSE 3000
+EXPOSE 8080
 
-CMD [ "node", "apps/random-worker/dist/main.cjs" ]
+CMD [ "node", "apps/auth/dist/index.js" ]

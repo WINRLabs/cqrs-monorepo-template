@@ -1,17 +1,17 @@
 import Pino from 'pino';
 import type { Logger, LoggerOptions } from 'pino';
-import { trace } from '@justbet/tracer';
+import { trace } from '@jb/tracer';
 
 type PinoTypes = LoggerOptions<string>;
 
-export type JustBetLogger = Logger;
+export type JBLogger = Logger;
 
 export interface ProgramLoggerParams {
   level: PinoTypes['level'];
   name: PinoTypes['name'];
 }
 
-export const createProgramLogger = (opts: ProgramLoggerParams): JustBetLogger => {
+export const createProgramLogger = (opts: ProgramLoggerParams): JBLogger => {
   const loggerOptions: LoggerOptions = {
     name: opts.name,
     level: opts.level,
