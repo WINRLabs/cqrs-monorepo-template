@@ -102,8 +102,6 @@ describe("Auth & Verify", async () => {
       new URL("http://localhost:8080/.well-known/jwks.json")
     );
 
-    console.log("token", token);
-
     const { payload } = await jwtVerify(token, JWKS, {
       issuer: "auth-service",
       audience: "auth-service",
