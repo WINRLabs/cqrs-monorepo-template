@@ -21,6 +21,7 @@ export const spanCloser = async <T extends JSONValue>(
   cb: (c: Context) => HandlerResponse<T> | Promise<HandlerResponse<T>>
 ): Promise<TypedResponse<T> | Response> => {
   try {
+    span.setAttribute("req.body", await c.req.text());
     return await Promise.resolve(cb(c));
   } catch (error) {
     span.recordException(error as Error);
