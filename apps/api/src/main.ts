@@ -1,5 +1,5 @@
-import "./tracer";
-import { tracer } from "./tracer";
+import "./instrumentation";
+import { tracer } from "./instrumentation";
 
 import { context, propagation, type Span } from "@jb/tracer";
 import express from "express";

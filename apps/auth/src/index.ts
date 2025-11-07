@@ -1,8 +1,10 @@
 import "./instrumentation";
+import { tracer } from "./instrumentation";
 import { logger } from "./logger";
 
 import { Context, Hono } from "hono";
 import { serve } from "@hono/node-server";
+import { type Span } from "@jb/tracer";
 
 const app = new Hono();
 
@@ -15,7 +17,10 @@ app.get("/", (c: Context) => {
 });
 
 app.get("/health", (c: Context) => {
-  return c.json({ status: "ok" });
+  return tracer.startActiveSpan("health", (span: Span) => {
+    span.setAttribute("naber", "naber");
+    return c.json({ status: "ok" });
+  });
 });
 
 serve(
