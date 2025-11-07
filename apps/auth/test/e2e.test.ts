@@ -36,6 +36,10 @@ describe("Auth & Verify", async () => {
   const client: any = testClient(app);
 
   let token: string;
+  let verifyPayload: {
+    message: string;
+    signature: string;
+  };
 
   it("should return a nonce", async () => {
     const res = await client.siwe.nonce.$get();
@@ -64,7 +68,7 @@ describe("Auth & Verify", async () => {
       account: walletClient.account,
     });
 
-    const verifyPayload = {
+    verifyPayload = {
       message,
       signature,
     };
@@ -81,23 +85,25 @@ describe("Auth & Verify", async () => {
     expect(result).toHaveProperty("token");
 
     token = result.token;
+  });
 
-    const verifyTokenRes = await client.siwe.verify.token.$post({
+  it("should verify token from the same client", async () => {
+    const res = await client.siwe.verify.token.$post({
       json: {
-        token: result.token,
+        token: token,
       },
     });
 
-    expect(verifyTokenRes.status).toBe(200);
+    expect(res.status).toBe(200);
 
-    const verifyTokenResult = await verifyTokenRes.json();
+    const result = await res.json();
 
-    expect(verifyTokenResult).toHaveProperty("payload");
-    expect(verifyTokenResult.payload).toHaveProperty("address");
-    expect(verifyTokenResult.payload).toHaveProperty("chainId");
+    expect(result).toHaveProperty("payload");
+    expect(result.payload).toHaveProperty("address");
+    expect(result.payload).toHaveProperty("chainId");
   });
 
-  it("should verify token", async () => {
+  it("should verify token from any client", async () => {
     const JWKS = createRemoteJWKSet(
       new URL("http://localhost:8080/.well-known/jwks.json")
     );
