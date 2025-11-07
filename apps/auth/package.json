@@ -6,14 +6,19 @@
     "start": "NODE_ENV=production node dist/index.js"
   },
   "dependencies": {
+    "@hono/node-server": "^1.19.6",
+    "@hono/otel": "^1.0.1",
     "@jb/logger": "workspace:*",
     "@jb/tracer": "workspace:*",
-    "@hono/node-server": "^1.19.6",
-    "hono": "^4.10.4"
+    "hono": "^4.10.4",
+    "jose": "^6.1.0",
+    "rise-wallet": "^0.2.29"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
+    "siwe": "^3.0.0",
     "tsx": "^4.7.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "viem": "^2.38.6"
   }
 }

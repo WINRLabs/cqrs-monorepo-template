@@ -15,6 +15,7 @@ import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 
 export type { Span, Tracer } from '@opentelemetry/api';
 export { trace, context, propagation } from '@opentelemetry/api';
+export { SpanStatusCode } from '@opentelemetry/api';
 
 interface OtelSDKArgs {
   serviceName: string;

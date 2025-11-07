@@ -20,7 +20,6 @@ services:
       - tempo
       - loki
       - prometheus
-      - rabbitmq
       - grafana
       - promtail
 
