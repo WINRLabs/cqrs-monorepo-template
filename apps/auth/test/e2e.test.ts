@@ -14,7 +14,7 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 
 describe("Auth & Verify", async () => {
   const domain = "localhost";
-  const origin = "https://localhost:8080";
+  const origin = "http://localhost:8080";
 
   const privateKey = generatePrivateKey();
 
