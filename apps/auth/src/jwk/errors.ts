@@ -28,3 +28,10 @@ export class JWKInvalidPrivateKeyError extends JWKError {
     super("Invalid private key.");
   }
 }
+
+export class JWKVerifyError extends JWKError {
+  constructor(message: string) {
+    super(message);
+    this.name = "JWKVerifyError";
+  }
+}

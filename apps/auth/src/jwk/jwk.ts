@@ -1,5 +1,12 @@
-import { SignJWT, exportJWK, importSPKI, importPKCS8, jwtVerify } from "jose";
-import { JWKNotInitializedError } from "./errors";
+import {
+  SignJWT,
+  exportJWK,
+  importSPKI,
+  importPKCS8,
+  jwtVerify,
+  type CryptoKey,
+} from "jose";
+import { JWKNotInitializedError, JWKVerifyError } from "./errors";
 
 export interface KeyPair {
   publicKey: string;
@@ -70,10 +77,7 @@ export class JWK {
         header: protectedHeader,
       };
     } catch (error) {
-      return {
-        valid: false,
-        error: error instanceof Error ? error.message : "Verification failed",
-      };
+      throw new JWKVerifyError("Invalid token");
     }
   }
 

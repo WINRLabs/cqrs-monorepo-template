@@ -6,81 +6,65 @@ import {
   parseSiweMessage,
   verifySiweMessage,
 } from "viem/siwe";
-import { Context, Hono } from "hono";
+import { Context } from "hono";
 import { Span, SpanStatusCode } from "@jb/tracer";
 
 import { JWK } from "../jwk";
-import { tracer } from "../instrumentation";
+import { JWKVerifyError } from "../jwk/errors";
 
-export function authHandler(jwk: JWK, app: Hono) {
-  app.get("/siwe/nonce", async (c: Context): Promise<Response> => {
-    return tracer.startActiveSpan("siwe-nonce-span", async (span: Span) => {
-      return c.json({ nonce: generateSiweNonce() });
+export class AuthHandler {
+  constructor(private readonly jwk: JWK) {}
+
+  async nonce(c: Context): Promise<Response> {
+    return c.json({ nonce: generateSiweNonce() });
+  }
+
+  async verify(c: Context, span?: Span): Promise<Response> {
+    const { message, signature } = await c.req.json();
+
+    const siweMessage = parseSiweMessage(message);
+    const { address, chainId, nonce } = siweMessage;
+
+    const porto = Porto.create();
+
+    const client = RelayClient.fromPorto(porto, { chainId });
+
+    const valid = await verifySiweMessage(client, {
+      address: address!,
+      message,
+      signature,
+      nonce,
     });
-  });
 
-  app.post("/siwe/verify", async (c: Context): Promise<Response> => {
-    return tracer.startActiveSpan("siwe-verify-span", async (span: Span) => {
-      const { message, signature } = await c.req.json();
+    if (!valid) {
+      throw new JWKVerifyError("Invalid SIWE signature");
+    }
 
-      const siweMessage = parseSiweMessage(message);
-      const { address, chainId, nonce } = siweMessage;
-
-      const porto = Porto.create();
-
-      const client = RelayClient.fromPorto(porto, { chainId });
-
-      const valid = await verifySiweMessage(client, {
-        address: address!,
-        message,
-        signature,
-        nonce,
-      });
-
-      if (!valid) {
-        span.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: "Invalid SIWE message",
-        });
-
-        span.recordException(new Error("Invalid SIWE message"));
-
-        return c.json({ error: "Invalid SIWE message" }, 400);
-      }
-
-      const jwt = await jwk.sign({
-        subject: address!,
-        payload: {
-          address,
-          chainId,
-        },
-        expiresIn: "1h",
-        audience: jwk.getIssuer(), // TODO: change it!
-      });
-
-      return c.json(
-        {
-          token: jwt.token,
-          kid: jwt.kid,
-          issuer: jwk.getIssuer(),
-        },
-        200
-      );
+    const jwt = await this.jwk.sign({
+      subject: address!,
+      payload: {
+        address,
+        chainId,
+      },
+      expiresIn: "1h",
+      audience: this.jwk.getIssuer(), // TODO: change it!
     });
-  });
 
-  app.post("/siwe/verify/token", async (c: Context): Promise<Response> => {
-    return tracer.startActiveSpan(
-      "siwe-verify-token-span",
-      async (span: Span) => {
-        const { token } = await c.req.json();
-        const { payload } = await jwk.verify(token, {
-          audience: jwk.getIssuer(),
-        });
-        return c.json({ payload });
-      }
+    return c.json(
+      {
+        token: jwt.token,
+        kid: jwt.kid,
+        issuer: this.jwk.getIssuer(),
+      },
+      200
     );
-  });
+  }
 
-  return app;
+  async verifyToken(c: Context): Promise<Response> {
+    const { token } = await c.req.json();
+    const { payload } = await this.jwk.verify(token, {
+      audience: this.jwk.getIssuer(),
+    });
+    return c.json({ payload });
+  }
 }
