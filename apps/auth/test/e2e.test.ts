@@ -14,7 +14,7 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 
 describe("Auth & Verify", async () => {
   const domain = "localhost";
-  const origin = "https://localhost:8080/api/siwe";
+  const origin = "https://localhost:8080";
 
   const privateKey = generatePrivateKey();
 
@@ -104,9 +104,7 @@ describe("Auth & Verify", async () => {
   });
 
   it("should verify token from any client", async () => {
-    const JWKS = createRemoteJWKSet(
-      new URL("http://localhost:8080/.well-known/jwks.json")
-    );
+    const JWKS = createRemoteJWKSet(new URL(`${origin}/.well-known/jwks.json`));
 
     const { payload } = await jwtVerify(token, JWKS, {
       issuer: "auth-service",
