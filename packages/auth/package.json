@@ -1,0 +1,28 @@
+{
+  "name": "@jb/auth",
+  "version": "0.0.1",
+  "description": "",
+  "main": "./dist/index.js",
+  "exports": {
+    "require": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "jose": "^6.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "tsx": "^4.7.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.8"
+  }
+}

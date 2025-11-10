@@ -1,5 +1,5 @@
 {
-  "name": "@jb/auth",
+  "name": "@jb/auth-service",
   "scripts": {
     "build": "tsc",
     "dev": "NODE_ENV=development tsx watch src/main.ts",
