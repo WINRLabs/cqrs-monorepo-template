@@ -2,8 +2,8 @@
   "name": "@jb/auth",
   "scripts": {
     "build": "tsc",
-    "dev": "NODE_ENV=development tsx watch src/index.ts",
-    "start": "NODE_ENV=production node dist/index.js",
+    "dev": "NODE_ENV=development tsx watch src/main.ts",
+    "start": "NODE_ENV=production node dist/main.js",
     "test": "vitest"
   },
   "dependencies": {

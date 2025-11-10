@@ -47,4 +47,4 @@ ENV PORT=8080
 
 EXPOSE 8080
 
-CMD [ "node", "apps/auth/dist/index.js" ]
+CMD [ "node", "apps/auth/dist/main.js" ]

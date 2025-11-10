@@ -1,7 +1,7 @@
 import { testClient } from "hono/testing";
 import { describe, it, expect } from "vitest";
 
-import app from "../src/index";
+import app from "../src/main";
 import { JWK, KeyPair } from "../src/jwk";
 
 import { readFile } from "fs/promises";
