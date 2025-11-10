@@ -27,7 +27,6 @@ export class Siwe {
 
   async nonce(c: Context): Promise<string> {
     const nonce = generateSiweNonce();
-    logger.info({ nonce }, "Generating SIWE nonce");
     await this.store.set(this.createNonceKey(nonce), nonce, {
       ttl: this.nonceTTL,
     });
@@ -45,7 +44,7 @@ export class Siwe {
     const siweMessage = parseSiweMessage(message);
     const { address, chainId, nonce } = siweMessage;
 
-    logger.info({ address, chainId, nonce }, "Verifying SIWE message");
+    logger.debug({ address, chainId, nonce }, "Verifying SIWE message");
 
     const nonceExists = await this.store.exists(this.createNonceKey(nonce!));
     if (!nonceExists) {

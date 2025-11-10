@@ -65,4 +65,8 @@ export class ValkeyStore implements Store {
     const result = await this.getClient().exists(key);
     return result > 0;
   }
+
+  async incrby(key: string, value: number): Promise<number> {
+    return await this.getClient().incrby(key, value);
+  }
 }

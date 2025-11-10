@@ -31,4 +31,10 @@ export class InMemoryStore implements Store {
   async exists(key: string): Promise<boolean> {
     return this.store.has(key);
   }
+
+  incrby(key: string, value: number): Promise<number> {
+    const current = this.store.get(key) || 0;
+    this.store.set(key, (Number(current) + value).toString());
+    return Promise.resolve(Number(current) + value);
+  }
 }

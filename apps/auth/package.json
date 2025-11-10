@@ -14,9 +14,11 @@
     "hono": "^4.10.4",
     "iovalkey": "^0.3.3",
     "jose": "^6.1.0",
+    "netmask": "^2.0.2",
     "rise-wallet": "^0.2.29"
   },
   "devDependencies": {
+    "@types/netmask": "^2.0.5",
     "@types/node": "^20.11.17",
     "siwe": "^3.0.0",
     "tsx": "^4.7.1",

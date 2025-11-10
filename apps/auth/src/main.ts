@@ -7,12 +7,13 @@ import { readFileSync } from "fs";
 import { Context, Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { httpInstrumentationMiddleware } from "@hono/otel";
+import { HTTPException } from "hono/http-exception";
 
 import { JWK, type KeyPair } from "./jwk";
 import { Siwe } from "./siwe";
 import { ValkeyStore } from "./store";
 import { SiweRoutes } from "./routes";
-import { HTTPException } from "hono/http-exception";
+import { RateLimiter, rateLimiterMiddleware } from "./ratelimiter";
 
 const PORT = parseInt(process.env.PORT || "8080");
 const JWK_ISSUER = process.env.JWK_ISSUER || "auth-service";
@@ -30,9 +31,13 @@ const valkeyStore = new ValkeyStore(VALKEY_URL);
 
 const siwe = new Siwe(jwk, valkeyStore);
 
+const rateLimiter = new RateLimiter(valkeyStore);
+
 const siweRoutes = new SiweRoutes(siwe);
 
 const app = new Hono();
+
+app.use("*", rateLimiterMiddleware(rateLimiter));
 
 app.use(
   httpInstrumentationMiddleware({
@@ -68,7 +73,7 @@ async function main() {
 
   await jwk.initialize();
 
-  serve(
+  const server = serve(
     {
       fetch: app.fetch,
       port: PORT,
@@ -77,6 +82,21 @@ async function main() {
       logger.info(`Server is running on http://localhost:${info.port}`);
     }
   );
+
+  process.on("SIGINT", () => {
+    server.close();
+    process.exit(0);
+  });
+
+  process.on("SIGTERM", () => {
+    server.close((err) => {
+      if (err) {
+        console.error(err);
+        process.exit(1);
+      }
+      process.exit(0);
+    });
+  });
 }
 
 main().catch((error) => {
