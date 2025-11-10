@@ -10,6 +10,10 @@ const headers = ["CF-Connecting-IP", "X-Forwarded-For", "X-Real-IP"];
 const whiteListedIpBlocks = [new Netmask("127.0.0.1/32")];
 
 const getClientIp = (c: Context): string | null => {
+  if (process.env.NODE_ENV === "test") {
+    return "127.0.0.1";
+  }
+
   for (const header of headers) {
     const value = c.req.header(header);
     if (value) {

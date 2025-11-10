@@ -6,7 +6,11 @@ import {
   jwtVerify,
   type CryptoKey,
 } from "jose";
-import { JWKNotInitializedError, JWKVerifyError } from "./errors";
+import {
+  JWKExpiredError,
+  JWKNotInitializedError,
+  JWKVerifyError,
+} from "./errors";
 import parse from "parse-duration";
 
 export interface KeyPair {
@@ -73,6 +77,18 @@ export class JWK {
           audience: options?.audience || this.issuer,
         }
       );
+
+      const expiresAt = payload.exp;
+
+      if (!expiresAt) {
+        throw new JWKExpiredError();
+      }
+
+      const now = Math.floor(Date.now() / 1000);
+
+      if (expiresAt < now) {
+        throw new JWKExpiredError();
+      }
 
       return {
         valid: true,

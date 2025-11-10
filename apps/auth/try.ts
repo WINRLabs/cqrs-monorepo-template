@@ -60,8 +60,11 @@ async function main() {
     account: walletClient.account,
   });
 
-  const res = await verify(siweMessage, signature);
+  const res = (await verify(siweMessage, signature)) as { token: string };
   console.log("Verify:", res);
+
+  const tokenData = await verifyToken(res.token);
+  console.log("Verify Token:", tokenData);
 }
 
 main().catch((error) => {

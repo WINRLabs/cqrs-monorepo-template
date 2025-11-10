@@ -11,6 +11,12 @@ export class JWKNotInitializedError extends JWKError {
   }
 }
 
+export class JWKExpiredError extends JWKError {
+  constructor() {
+    super("Token expired.");
+  }
+}
+
 export class JWKInvalidTokenError extends JWKError {
   constructor() {
     super("Invalid token.");
