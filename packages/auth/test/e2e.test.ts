@@ -7,12 +7,14 @@ describe('Auth & Verify', async () => {
   const issuer = 'auth-service';
   const audience = 'auth-service';
   const token =
-    'eyJhbGciOiJSUzI1NiIsImtpZCI6ImRmMDJkNWYxLTI4YjktNDQzZS05OTJhLWM3MTliYWRmOTc4YSJ9.eyJhZGRyZXNzIjoiMHhjQ0I0NzBFMGNFM2Q3NEE3MkVENTQ5NkY0NjIxMjYxNUMxNzZiMTMwIiwiY2hhaW5JZCI6MTExNTU5MzEsInN1YiI6IjB4Y0NCNDcwRTBjRTNkNzRBNzJFRDU0OTZGNDYyMTI2MTVDMTc2YjEzMCIsImlzcyI6ImF1dGgtc2VydmljZSIsImF1ZCI6ImF1dGgtc2VydmljZSIsImlhdCI6MTc2Mjc3MDE3NCwiZXhwIjoxNzYyNzczNzc0fQ.Q1dKZ_U1Hcusgvmb4Fmdev7YmxC-fXXMQazgfhUUU3cH_ybq0qpEnVgkQMrMf3JT-6RniPvkzjgRtY3HvR7schJ_FMOsMMDt9ioaaYNtUKb5WF-1ZnWieDcQ-qzvD43WtZMNEVziIhTsY4z5Umm1wyMLKHw-WoIZQqhDlBk5c7hNxE4blptFT6bUWoRbtJlvEOvOuzk4n3A03dSrBM-MSRYC_GqA64Y0fZFdP-lKYUFsdoCY4UCa_80aLFhW6qdI0otp8TCitMFqlTaJ43kXji2E-lee9_74i6-fcvvDZvJXVlXbbp0ZcyUkM90sUrNYrG8vk4i2tl_9-IG_Q68-vA';
+    'eyJhbGciOiJSUzI1NiIsImtpZCI6ImRmMDJkNWYxLTI4YjktNDQzZS05OTJhLWM3MTliYWRmOTc4YSJ9.eyJhZGRyZXNzIjoiMHg4MjIxNDA3NGFhNEY4ODY3MDM1ZWU4NUQwNWM4RWVDYTRhOUQxNDcxIiwiY2hhaW5JZCI6MTExNTU5MzEsInN1YiI6IjB4ODIyMTQwNzRhYTRGODg2NzAzNWVlODVEMDVjOEVlQ2E0YTlEMTQ3MSIsImlzcyI6ImF1dGgtc2VydmljZSIsImF1ZCI6ImF1dGgtc2VydmljZSIsImlhdCI6MTc2Mjc3MTg4NCwiZXhwIjoxNzYyNzc1NDg0fQ.EKGhZaET_v9X_SHuiP2ZIfvgHD8cSz0zLK5KnLLfmeJteK_1SDUccLblFnjcGHNs39AKbksWzlZCYIGFtUDjvKsThR0X3ewkXpP0zS8nQg3lb-N1C-c8bqQ0bN3NQpDAyWxKcNxPc_XXuvqEv7L1qBNI-MdaNwlRsLfpp8lvHzWWbzyNYOEf128PUqYWjrEwYfOuRb32eJ5OtO-zHfX2_k1LTQhmCIMumbi7JT8OwfAGqZdKpvZVvHsYVdxH8q-rbxLgcgU_wXZaa4-_IwUEH9L90i4KlVnSw5zWo6eq1GR9zrXbThee4lU_W_gJVEfuSeuZx5tzdtkdxuSPBMgrIQ';
 
   it('should verify token', async () => {
     const verifier = new AuthVerifier(origin, issuer, audience);
 
     const payload = await verifier.verify(token);
+
+    console.log(payload);
 
     expect(payload).toHaveProperty('address');
     expect(payload).toHaveProperty('chainId');

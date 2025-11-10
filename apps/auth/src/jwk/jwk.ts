@@ -7,6 +7,7 @@ import {
   type CryptoKey,
 } from "jose";
 import { JWKNotInitializedError, JWKVerifyError } from "./errors";
+import parse from "parse-duration";
 
 export interface KeyPair {
   publicKey: string;
@@ -41,13 +42,15 @@ export class JWK {
       throw new JWKNotInitializedError();
     }
 
+    const duration = parse(payload.expiresIn)!;
+
     const jwt = await new SignJWT(payload.payload)
       .setProtectedHeader({ alg: "RS256", kid: this.keyPair.kid })
       .setSubject(payload.subject)
       .setIssuer(this.issuer)
       .setAudience(payload.audience || this.issuer)
       .setIssuedAt()
-      .setExpirationTime(payload.expiresIn)
+      .setExpirationTime(Math.floor(Date.now() / 1000) + duration / 1000)
       .sign(this.privateCryptoKey);
 
     return {

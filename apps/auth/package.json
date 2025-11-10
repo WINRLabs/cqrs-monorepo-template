@@ -15,6 +15,7 @@
     "iovalkey": "^0.3.3",
     "jose": "^6.1.0",
     "netmask": "^2.0.2",
+    "parse-duration": "^2.1.4",
     "rise-wallet": "^0.2.29"
   },
   "devDependencies": {
