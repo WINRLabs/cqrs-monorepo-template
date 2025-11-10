@@ -1,28 +1,36 @@
 import "./instrumentation";
-import { tracer, instrumentationConfig, spanCloser } from "./instrumentation";
+import { tracer, instrumentationConfig } from "./instrumentation";
 import { logger } from "./logger";
 
 import { readFileSync } from "fs";
 
 import { Context, Hono } from "hono";
-import { HTTPException } from "hono/http-exception";
 import { serve } from "@hono/node-server";
 import { httpInstrumentationMiddleware } from "@hono/otel";
 
 import { JWK, type KeyPair } from "./jwk";
-import { AuthHandler } from "./auth";
-import { Span, SpanStatusCode } from "@jb/tracer";
+import { Siwe } from "./siwe";
+import { ValkeyStore } from "./store";
+import { SiweRoutes } from "./routes";
+import { HTTPException } from "hono/http-exception";
 
 const PORT = parseInt(process.env.PORT || "8080");
-const ISSUER = process.env.ISSUER || "auth-service";
+const JWK_ISSUER = process.env.JWK_ISSUER || "auth-service";
 
-const keysFile = process.env.KEYS_FILE || readFileSync("keys.json", "utf8");
+const VALKEY_URL =
+  process.env.VALKEY_URL || "redis://default:topsecret@localhost:6379";
 
-const keyPair = JSON.parse(keysFile) as KeyPair;
+const JWK_KEYS_FILE = process.env.JWK_KEYS_FILE || "keys.json";
 
-const jwk = new JWK(keyPair, ISSUER);
+const keyPair = JSON.parse(readFileSync(JWK_KEYS_FILE, "utf8")) as KeyPair;
 
-const authHandler = new AuthHandler(jwk);
+const jwk = new JWK(keyPair, JWK_ISSUER);
+
+const valkeyStore = new ValkeyStore(VALKEY_URL);
+
+const siwe = new Siwe(jwk, valkeyStore);
+
+const siweRoutes = new SiweRoutes(siwe);
 
 const app = new Hono();
 
@@ -35,76 +43,29 @@ app.use(
   })
 );
 
+app.onError((error, c) => {
+  logger.error(error, "Error in request");
+
+  if (error instanceof HTTPException) {
+    return c.json({ error: error.message }, error.status);
+  }
+
+  return c.json({ error: "Internal server error" }, 500);
+});
+
 app.get("/health", (c: Context) => c.json({ status: "ok" }));
 
 app.get("/.well-known/jwks.json", async (c: Context) =>
   c.json(await jwk.getJWKS())
 );
 
-app.get("/siwe/nonce", (c: Context) => {
-  return tracer.startActiveSpan("siwe-nonce-span", async (span: Span) => {
-    return spanCloser(span, c, async (c: Context) => {
-      return authHandler.nonce(c);
-    });
-  });
-});
-
-app.post("/siwe/verify", (c: Context) => {
-  return tracer.startActiveSpan("siwe-verify-span", async (span: Span) => {
-    return spanCloser(span, c, async (c: Context) => {
-      try {
-        return await authHandler.verify(c);
-      } catch (error) {
-        span.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: error instanceof Error ? error.message : "Unknown error",
-        });
-
-        span.recordException(error as Error);
-
-        const errorResponse = new Response("Unauthorized", {
-          status: 401, // this gets ignored
-          headers: {
-            Authenticate: 'error="invalid_token"',
-          },
-        });
-
-        throw new HTTPException(401, { res: errorResponse });
-      }
-    });
-  });
-});
-
-app.post("/siwe/verify/token", (c: Context) => {
-  return tracer.startActiveSpan(
-    "siwe-verify-token-span",
-    async (span: Span) => {
-      return spanCloser(span, c, async (c: Context) => {
-        try {
-          return await authHandler.verifyToken(c);
-        } catch (error) {
-          span.setStatus({
-            code: SpanStatusCode.ERROR,
-            message: error instanceof Error ? error.message : "Unknown error",
-          });
-
-          span.recordException(error as Error);
-
-          const errorResponse = new Response("Unauthorized", {
-            status: 401,
-            headers: {
-              Authenticate: 'error="invalid_token"',
-            },
-          });
-
-          throw new HTTPException(401, { res: errorResponse });
-        }
-      });
-    }
-  );
-});
+app.get("/siwe/nonce", siweRoutes.nonce);
+app.post("/siwe/verify", siweRoutes.verify);
+app.post("/siwe/verify/token", siweRoutes.verifyToken);
 
 async function main() {
+  await valkeyStore.connect();
+
   await jwk.initialize();
 
   serve(
@@ -124,3 +85,5 @@ main().catch((error) => {
 });
 
 export default app;
+
+export type AppType = typeof app;

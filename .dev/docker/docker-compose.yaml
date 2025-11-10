@@ -138,10 +138,21 @@ services:
       - RABBITMQ_DEFAULT_USER=default_user_jv9GUd8KvfaqOisBq5z
       - RABBITMQ_DEFAULT_PASS=AFDTEkFFd17Aav9D6simibY9a9_Fzuwo
 
+  valkey:
+    container_name: valkey_dev
+    image: valkey/valkey-bundle:alpine
+    command: valkey-server --port 6379 --requirepass topsecret --save ""
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey-data:/data
+
 volumes:
   tempo-data:
   loki-data:
   promtail-data:
+  valkey-data:
+
 
 networks:
   default:

@@ -3,6 +3,7 @@ import { describe, it, expect } from "vitest";
 
 import app from "../src/main";
 import { JWK, KeyPair } from "../src/jwk";
+import { InMemoryStore } from "../src/store";
 
 import { readFile } from "fs/promises";
 
@@ -11,6 +12,7 @@ import { createWalletClient, http } from "viem";
 import { riseTestnet } from "viem/chains";
 import siwe from "siwe";
 import { createRemoteJWKSet, jwtVerify } from "jose";
+import { Siwe } from "../src/siwe";
 
 describe("Auth & Verify", async () => {
   const domain = "localhost";
@@ -29,7 +31,11 @@ describe("Auth & Verify", async () => {
 
   const keyPair = JSON.parse(keysFile) as KeyPair;
 
+  const store = new InMemoryStore();
+
   const jwk = new JWK(keyPair, "auth-service");
+
+  const siweInstance = new Siwe(jwk, store);
 
   await jwk.initialize();
 
@@ -56,6 +62,7 @@ describe("Auth & Verify", async () => {
       domain,
       address: walletClient.account.address,
       statement: nonceValue,
+      nonce: nonceValue,
       uri: origin,
       version: "1",
       chainId: riseTestnet.id,
@@ -98,9 +105,8 @@ describe("Auth & Verify", async () => {
 
     const result = await res.json();
 
-    expect(result).toHaveProperty("payload");
-    expect(result.payload).toHaveProperty("address");
-    expect(result.payload).toHaveProperty("chainId");
+    expect(result).toHaveProperty("address");
+    expect(result).toHaveProperty("chainId");
   });
 
   it("should verify token from any client", async () => {

@@ -12,6 +12,7 @@
     "@jb/logger": "workspace:*",
     "@jb/tracer": "workspace:*",
     "hono": "^4.10.4",
+    "iovalkey": "^0.3.3",
     "jose": "^6.1.0",
     "rise-wallet": "^0.2.29"
   },
