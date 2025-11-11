@@ -11,6 +11,7 @@
     "@hono/otel": "^1.0.1",
     "@jb/logger": "workspace:*",
     "@jb/tracer": "workspace:*",
+    "dotenv": "^17.2.3",
     "hono": "^4.10.4",
     "iovalkey": "^0.3.3",
     "jose": "^6.1.0",

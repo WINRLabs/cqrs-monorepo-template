@@ -41,17 +41,11 @@ export const rateLimiterMiddleware = (
     try {
       const clientIp = getClientIp(c);
 
-      logger.debug({ clientIp }, "Getting client IP");
-
       if (!clientIp) {
         return c.json({ error: "Invalid client IP" }, 400);
       }
 
-      logger.debug({ clientIp }, "Limiting rate");
-
       await rateLimiter.limit(clientIp);
-
-      logger.debug({ clientIp }, "Rate limited");
     } catch (error) {
       logger.error(error, "Error limiting rate");
 

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import "./instrumentation";
 import { tracer, instrumentationConfig } from "./instrumentation";
 import { logger } from "./logger";
@@ -66,7 +67,7 @@ app.get("/.well-known/jwks.json", async (c: Context) =>
 
 app.get("/siwe/nonce", siweRoutes.nonce);
 app.post("/siwe/verify", siweRoutes.verify);
-app.post("/siwe/verify/token", siweRoutes.verifyToken);
+app.post("/siwe/verify/refresh", siweRoutes.verifyRefreshToken);
 
 async function main() {
   await valkeyStore.connect();

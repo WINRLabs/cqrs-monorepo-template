@@ -29,13 +29,13 @@ async function verify(message: string, signature: string) {
   return verifyData;
 }
 
-async function verifyToken(token: string) {
-  const verifyToken = await fetch(`${origin}/siwe/verify/token`, {
+async function verifyRefreshToken(accessToken: string, refreshToken: string) {
+  const verifyRefreshToken = await fetch(`${origin}/siwe/verify/refresh`, {
     method: "POST",
-    body: JSON.stringify({ token }),
+    body: JSON.stringify({ accessToken, refreshToken }),
   });
-  const verifyTokenData = await verifyToken.json();
-  return verifyTokenData;
+  const verifyRefreshTokenData = await verifyRefreshToken.json();
+  return verifyRefreshTokenData;
 }
 
 async function main() {
@@ -60,11 +60,16 @@ async function main() {
     account: walletClient.account,
   });
 
-  const res = (await verify(siweMessage, signature)) as { token: string };
+  const res = (await verify(siweMessage, signature)) as {
+    accessToken: string;
+    refreshToken: string;
+  };
   console.log("Verify:", res);
 
-  const tokenData = await verifyToken(res.token);
-  console.log("Verify Token:", tokenData);
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+
+  const tokenData = await verifyRefreshToken(res.accessToken, res.refreshToken);
+  console.log("Verify Refresh Token:", tokenData);
 }
 
 main().catch((error) => {

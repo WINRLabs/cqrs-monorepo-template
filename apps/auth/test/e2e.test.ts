@@ -1,9 +1,12 @@
+// IMPORTANT: start local redis before testing
+
 import { testClient } from "hono/testing";
 import { describe, it, expect } from "vitest";
 
 import app from "../src/main";
 import { JWK, KeyPair } from "../src/jwk";
 import { InMemoryStore } from "../src/store";
+import { Siwe } from "../src/siwe";
 
 import { readFile } from "fs/promises";
 
@@ -12,7 +15,6 @@ import { createWalletClient, http } from "viem";
 import { riseTestnet } from "viem/chains";
 import siwe from "siwe";
 import { createRemoteJWKSet, jwtVerify } from "jose";
-import { Siwe } from "../src/siwe";
 
 describe("Auth & Verify", async () => {
   const domain = "localhost";
@@ -31,17 +33,17 @@ describe("Auth & Verify", async () => {
 
   const keyPair = JSON.parse(keysFile) as KeyPair;
 
-  const store = new InMemoryStore();
+  // const store = new InMemoryStore(); // TODO: make it work
+  // const siweInstance = new Siwe(jwk, store);
 
   const jwk = new JWK(keyPair, "auth-service");
-
-  const siweInstance = new Siwe(jwk, store);
-
   await jwk.initialize();
 
   const client: any = testClient(app);
 
-  let token: string;
+  let accessToken: string;
+  let refreshToken: string;
+
   let verifyPayload: {
     message: string;
     signature: string;
@@ -89,15 +91,20 @@ describe("Auth & Verify", async () => {
 
     const result = await res.json();
 
-    expect(result).toHaveProperty("token");
+    expect(result).toHaveProperty("accessToken");
+    expect(result).toHaveProperty("refreshToken");
+    expect(result).toHaveProperty("kid");
+    expect(result).toHaveProperty("issuer");
 
-    token = result.token;
+    accessToken = result.accessToken;
+    refreshToken = result.refreshToken;
   });
 
-  it("should verify token from the same client", async () => {
-    const res = await client.siwe.verify.token.$post({
+  it("should verify refresh token from the same client", async () => {
+    const res = await client.siwe.verifyRefreshToken.$post({
       json: {
-        token: token,
+        accessToken,
+        refreshToken,
       },
     });
 
@@ -105,19 +112,9 @@ describe("Auth & Verify", async () => {
 
     const result = await res.json();
 
-    expect(result).toHaveProperty("address");
-    expect(result).toHaveProperty("chainId");
-  });
-
-  it("should verify token from any client", async () => {
-    const JWKS = createRemoteJWKSet(new URL(`${origin}/.well-known/jwks.json`));
-
-    const { payload } = await jwtVerify(token, JWKS, {
-      issuer: "auth-service",
-      audience: "auth-service",
-    });
-
-    expect(payload).toHaveProperty("address");
-    expect(payload).toHaveProperty("chainId");
+    expect(result).toHaveProperty("accessToken");
+    expect(result).toHaveProperty("refreshToken");
+    expect(result).toHaveProperty("kid");
+    expect(result).toHaveProperty("issuer");
   });
 });

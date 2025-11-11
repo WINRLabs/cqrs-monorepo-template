@@ -4,6 +4,9 @@ import {
   importSPKI,
   importPKCS8,
   jwtVerify,
+  compactVerify,
+  decodeJwt,
+  decodeProtectedHeader,
   type CryptoKey,
 } from "jose";
 import {
@@ -60,6 +63,39 @@ export class JWK {
     return {
       token: jwt,
       kid: this.keyPair.kid,
+    };
+  }
+
+  async verifyExpiredToken(token: string, options?: { audience?: string }) {
+    await compactVerify(token, this.publicCryptoKey!);
+
+    const payload = decodeJwt(token);
+    const protectedHeader = decodeProtectedHeader(token);
+
+    if (payload.iss !== this.issuer) {
+      throw new JWKVerifyError("Invalid issuer");
+    }
+
+    const expectedAudience = options?.audience || this.issuer;
+    if (payload.aud !== expectedAudience) {
+      throw new JWKVerifyError("Invalid audience");
+    }
+
+    const expiresAt = payload.exp;
+
+    if (!expiresAt) {
+      throw new JWKVerifyError("Token does not have an expiration time");
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+
+    if (expiresAt >= now) {
+      throw new JWKVerifyError("Token is not expired");
+    }
+
+    return {
+      payload,
+      header: protectedHeader,
     };
   }
 
