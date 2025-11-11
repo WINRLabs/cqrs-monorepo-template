@@ -1,7 +1,9 @@
 // IMPORTANT: start local redis before testing
 
+import { config } from "dotenv";
+
 import { testClient } from "hono/testing";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 import app from "../src/main";
 import { JWK, KeyPair } from "../src/jwk";
@@ -17,6 +19,10 @@ import siwe from "siwe";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
 describe("Auth & Verify", async () => {
+  config({ path: ".env.test" });
+
+  vi.useFakeTimers();
+
   const domain = "localhost";
   const origin = "http://localhost:8080";
 
@@ -101,6 +107,8 @@ describe("Auth & Verify", async () => {
   });
 
   it("should verify refresh token from the same client", async () => {
+    vi.advanceTimersByTime(1_500); // 1.5 seconds
+
     const res = await client.siwe.verifyRefreshToken.$post({
       json: {
         accessToken,

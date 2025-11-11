@@ -38,7 +38,9 @@ const siweRoutes = new SiweRoutes(siwe);
 
 const app = new Hono();
 
-app.use("*", rateLimiterMiddleware(rateLimiter));
+if (process.env.NODE_ENV !== "test") {
+  app.use("*", rateLimiterMiddleware(rateLimiter));
+}
 
 app.use(
   httpInstrumentationMiddleware({
