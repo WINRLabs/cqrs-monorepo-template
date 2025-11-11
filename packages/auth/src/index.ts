@@ -17,18 +17,6 @@ export class AuthVerifier {
       audience: this.audience,
     });
 
-    const expiresAt = payload.exp;
-
-    if (!expiresAt) {
-      throw new Error('Token does not have an expiration time');
-    }
-
-    const now = Math.floor(Date.now() / 1000);
-
-    if (expiresAt < now) {
-      throw new Error('Token expired');
-    }
-
     return payload;
   }
 }
