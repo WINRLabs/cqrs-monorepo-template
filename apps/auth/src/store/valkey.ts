@@ -5,19 +5,13 @@ import type { Store } from "./store";
 export class ValkeyStore implements Store {
   private client: Valkey | null = null;
 
-  constructor(private readonly connectionUrl: string) {}
-
-  private options(): RedisOptions {
-    return {
-      lazyConnect: true,
-      autoResubscribe: true,
-      reconnectOnError: (error) => true,
-    };
-  }
+  constructor(
+    private readonly connectionUrl: string,
+    private readonly options: RedisOptions
+  ) {}
 
   async connect() {
-    const options = this.options();
-    this.client = new Valkey(this.connectionUrl, options);
+    this.client = new Valkey(this.connectionUrl, this.options);
     await this.client.connect();
   }
 

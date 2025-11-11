@@ -10,18 +10,33 @@ import { Context } from "hono";
 
 import type { Store } from "../store";
 import { JWK, JWKVerifyError } from "../jwk";
-import { logger } from "../logger";
 import { randomUUID } from "crypto";
 import parse from "parse-duration";
 
+interface SiweOptions {
+  nonceTTL: number;
+  jwtAccessExp: string;
+  jwtRefreshExp: string;
+}
+
 export class Siwe {
   private readonly nonceKey = "siwe:nonce";
-  private readonly nonceTTL = 60; // 1 minute
-
   private readonly refreshTokenKey = "refresh_token";
 
-  private readonly jwtAccessExp = process.env.JWT_ACCESS_EXP || "1h";
-  private readonly jwtRefreshExp = process.env.JWT_REFRESH_EXP || "1w";
+  private nonceTTL = 60; // 1 minute
+  private jwtAccessExp = "1h";
+  private jwtRefreshExp = "1w";
+
+  constructor(
+    private readonly jwk: JWK,
+    private readonly store: Store,
+
+    options?: SiweOptions
+  ) {
+    this.nonceTTL = options?.nonceTTL || this.nonceTTL;
+    this.jwtAccessExp = options?.jwtAccessExp || this.jwtAccessExp;
+    this.jwtRefreshExp = options?.jwtRefreshExp || this.jwtRefreshExp;
+  }
 
   private createNonceKey(nonce: string): string {
     return `${this.nonceKey}:${nonce}`;
@@ -30,11 +45,6 @@ export class Siwe {
   private createRefreshTokenKey(address: `0x${string}`): string {
     return `${this.refreshTokenKey}:${address}`;
   }
-
-  constructor(
-    private readonly jwk: JWK,
-    private readonly store: Store
-  ) {}
 
   async nonce(c: Context): Promise<string> {
     const nonce = generateSiweNonce();

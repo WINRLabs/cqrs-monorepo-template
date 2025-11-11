@@ -7,7 +7,9 @@ import { logger } from "../logger";
 
 const headers = ["CF-Connecting-IP", "X-Forwarded-For", "X-Real-IP"];
 
-const whiteListedIpBlocks = [new Netmask("127.0.0.1/32")];
+const WHITELISTED_IPS = process.env.WHITELISTED_IPS?.split(",").map(
+  (ip) => new Netmask(ip)
+);
 
 const getClientIp = (c: Context): string | null => {
   const remoteAddress = c.env.incoming.socket.remoteAddress;
@@ -15,7 +17,7 @@ const getClientIp = (c: Context): string | null => {
   const isInternal = [
     process.env.NODE_ENV === "test",
     remoteAddress === "::1",
-    whiteListedIpBlocks.some((ip) => ip.contains(remoteAddress)),
+    WHITELISTED_IPS?.some((ip) => ip.contains(remoteAddress)),
   ].some((condition) => condition);
 
   if (isInternal) return "127.0.0.1";

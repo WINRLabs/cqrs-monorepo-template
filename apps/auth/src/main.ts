@@ -16,21 +16,29 @@ import { ValkeyStore } from "./store";
 import { SiweRoutes } from "./routes";
 import { RateLimiter, rateLimiterMiddleware } from "./ratelimiter";
 
-const PORT = parseInt(process.env.PORT || "8080");
-const JWK_ISSUER = process.env.JWK_ISSUER || "auth-service";
+const jwk = new JWK({
+  issuer: process.env.JWK_ISSUER || "auth-service",
+  keyPair: () => {
+    return process.env.JWK_KEYS_RAW
+      ? process.env.JWK_KEYS_RAW
+      : readFileSync(process.env.JWK_KEYS_FILE || "keys.json", "utf8");
+  },
+});
 
-const VALKEY_URL =
-  process.env.VALKEY_URL || "redis://default:topsecret@localhost:6379";
+const valkeyStore = new ValkeyStore(
+  process.env.VALKEY_URL || "redis://default:topsecret@localhost:6379",
+  {
+    lazyConnect: true,
+    autoResubscribe: true,
+    reconnectOnError: (error) => true,
+  }
+);
 
-const JWK_KEYS_FILE = process.env.JWK_KEYS_FILE || "keys.json";
-
-const keyPair = JSON.parse(readFileSync(JWK_KEYS_FILE, "utf8")) as KeyPair;
-
-const jwk = new JWK(keyPair, JWK_ISSUER);
-
-const valkeyStore = new ValkeyStore(VALKEY_URL);
-
-const siwe = new Siwe(jwk, valkeyStore);
+const siwe = new Siwe(jwk, valkeyStore, {
+  nonceTTL: 60,
+  jwtAccessExp: process.env.JWT_ACCESS_EXP!,
+  jwtRefreshExp: process.env.JWT_REFRESH_EXP!,
+});
 
 const rateLimiter = new RateLimiter(valkeyStore);
 
@@ -79,7 +87,7 @@ async function main() {
   const server = serve(
     {
       fetch: app.fetch,
-      port: PORT,
+      port: parseInt(process.env.PORT || "8080"),
     },
     (info) => {
       logger.info(`Server is running on http://localhost:${info.port}`);

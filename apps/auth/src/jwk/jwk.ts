@@ -23,20 +23,26 @@ export interface KeyPair {
   createdAt: string;
 }
 
+interface JWKOptions {
+  keyPair: () => string;
+  issuer: string;
+}
+
 export class JWK {
-  private keyPair: KeyPair;
+  private keyPair!: KeyPair;
   private publicCryptoKey: CryptoKey | null = null;
   private privateCryptoKey: CryptoKey | null = null;
   private issuer: string;
 
-  constructor(keyPair: KeyPair, issuer: string = "jwk-server") {
-    this.keyPair = keyPair;
-    this.issuer = issuer;
+  constructor(private readonly opts: JWKOptions) {
+    this.issuer = opts.issuer;
+    this.initialize();
   }
 
   async initialize() {
-    this.publicCryptoKey = await importSPKI(this.keyPair.publicKey, "RS256");
-    this.privateCryptoKey = await importPKCS8(this.keyPair.privateKey, "RS256");
+    const keyPair = JSON.parse(this.opts.keyPair());
+    this.publicCryptoKey = await importSPKI(keyPair.publicKey, "RS256");
+    this.privateCryptoKey = await importPKCS8(keyPair.privateKey, "RS256");
   }
 
   async sign(payload: {
@@ -153,14 +159,6 @@ export class JWK {
         },
       ],
     };
-  }
-
-  getKeyId() {
-    return this.keyPair.kid;
-  }
-
-  getCreatedAt() {
-    return this.keyPair.createdAt;
   }
 
   getIssuer() {
