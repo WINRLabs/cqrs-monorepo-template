@@ -87,14 +87,16 @@ async function main() {
   );
 
   process.on("SIGINT", () => {
+    logger.info("SIGINT received, shutting down server");
     server.close();
     process.exit(0);
   });
 
   process.on("SIGTERM", () => {
+    logger.info("SIGTERM received, shutting down server");
     server.close((err) => {
       if (err) {
-        console.error(err);
+        logger.error(err, "Error shutting down server");
         process.exit(1);
       }
       process.exit(0);

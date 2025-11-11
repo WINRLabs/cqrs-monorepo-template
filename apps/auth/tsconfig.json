@@ -1,7 +1,7 @@
 {
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
-    // "rootDir": "./src",
+    "rootDir": "./src",
     "outDir": "./dist",
 
     "lib": ["esnext"],
@@ -31,5 +31,7 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
     "esModuleInterop": true
-  }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "test"]
 }
