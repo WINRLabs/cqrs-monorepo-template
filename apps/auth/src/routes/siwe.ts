@@ -29,20 +29,7 @@ export class SiweRoutes {
 
           return c.json({ accessToken, refreshToken, kid, issuer }, 200);
         } catch (error) {
-          logger.error(error, "siwe-verify-span");
-
-          span.setStatus({
-            code: SpanStatusCode.ERROR,
-            message: error instanceof Error ? error.message : "Unknown error",
-          });
-
-          span.recordException(error as Error);
-
-          const errorResponse = new Response("Unauthorized", {
-            status: 401,
-          });
-
-          throw new HTTPException(401, { res: errorResponse });
+          throw errorResponse(error as Error, span, "siwe-verify-span");
         }
       });
     });
@@ -71,24 +58,32 @@ export class SiweRoutes {
               },
               200
             );
-          } catch (error) {
-            logger.error(error, "siwe-verify-refresh-token-span");
-
-            span.setStatus({
-              code: SpanStatusCode.ERROR,
-              message: error instanceof Error ? error.message : "Unknown error",
-            });
-
-            span.recordException(error as Error);
-
-            const errorResponse = new Response("Unauthorized", {
-              status: 401,
-            });
-
-            throw new HTTPException(401, { res: errorResponse });
+          } catch (error: unknown) {
+            throw errorResponse(
+              error as Error,
+              span,
+              "siwe-verify-refresh-token-span"
+            );
           }
         });
       }
     );
   };
+}
+
+function errorResponse(error: Error, span: Span, spanName: string) {
+  logger.error(error, spanName);
+
+  span.setStatus({
+    code: SpanStatusCode.ERROR,
+    message: error instanceof Error ? error.message : "Unknown error",
+  });
+
+  span.recordException(error as Error);
+
+  const errorResponse = new Response("Unauthorized", {
+    status: 401,
+  });
+
+  return new HTTPException(401, { res: errorResponse });
 }

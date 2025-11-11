@@ -82,24 +82,22 @@ export class Siwe {
       ttl: Math.floor(parse(this.jwtRefreshExp)! / 1000),
     });
 
+    const payload = {
+      address,
+      chainId,
+      id,
+    };
+
     const accessToken = await this.jwk.sign({
       subject: address!,
-      payload: {
-        address,
-        chainId,
-        id,
-      },
+      payload,
       expiresIn: this.jwtAccessExp,
       audience: this.jwk.getIssuer(), // TODO: change it!
     });
 
     const refreshToken = await this.jwk.sign({
       subject: address!,
-      payload: {
-        address,
-        chainId,
-        id,
-      },
+      payload,
       expiresIn: this.jwtRefreshExp,
       audience: this.jwk.getIssuer(), // TODO: change it!
     });
