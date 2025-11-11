@@ -41,8 +41,16 @@ export class JWK {
 
   async initialize() {
     const keyPair = JSON.parse(this.opts.keyPair());
+
     this.publicCryptoKey = await importSPKI(keyPair.publicKey, "RS256");
     this.privateCryptoKey = await importPKCS8(keyPair.privateKey, "RS256");
+
+    this.keyPair = {
+      publicKey: keyPair.publicKey,
+      privateKey: keyPair.privateKey,
+      kid: keyPair.kid,
+      createdAt: keyPair.createdAt,
+    };
   }
 
   async sign(payload: {
