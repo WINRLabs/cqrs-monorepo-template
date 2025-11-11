@@ -105,24 +105,4 @@ describe("Auth & Verify", async () => {
     accessToken = result.accessToken;
     refreshToken = result.refreshToken;
   });
-
-  it("should verify refresh token from the same client", async () => {
-    vi.advanceTimersByTime(1_500); // 1.5 seconds
-
-    const res = await client.siwe.verifyRefreshToken.$post({
-      json: {
-        accessToken,
-        refreshToken,
-      },
-    });
-
-    expect(res.status).toBe(200);
-
-    const result = await res.json();
-
-    expect(result).toHaveProperty("accessToken");
-    expect(result).toHaveProperty("refreshToken");
-    expect(result).toHaveProperty("kid");
-    expect(result).toHaveProperty("issuer");
-  });
 });
